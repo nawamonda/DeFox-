@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { VideoClip, SkillSet, Review } from './types';
 import { INITIAL_VIDEOS, INITIAL_SKILLS, INITIAL_REVIEWS, SOCIAL_LINKS, BANNER_IMAGE, LOGO_URL } from './constants';
 import VideoPlayer from './components/VideoPlayer';
-import AdminPanel from './components/AdminPanel';
+import { AdminPanel } from './components/AdminPanel';
 import { 
   Instagram, 
   Youtube, 

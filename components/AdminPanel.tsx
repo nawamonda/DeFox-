@@ -42,7 +42,7 @@ interface AdminPanelProps {
   onResetData: () => void;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVideo, onClose, skills, onUpdateSkills, reviews, onUpdateReviews, onResetData }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVideo, onClose, skills, onUpdateSkills, reviews, onUpdateReviews, onResetData }) => {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [activeTab, setActiveTab] = useState<'video' | 'review'>('video');
   
@@ -260,7 +260,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/90 backdrop-blur-md p-4 duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/90 backdrop-blur-md p-4"
       onClick={onClose}
     >
       <div 
@@ -763,5 +763,3 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
     </div>
   );
 };
-
-export default AdminPanel;
