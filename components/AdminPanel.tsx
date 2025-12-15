@@ -260,7 +260,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/90 backdrop-blur-md p-4 animate-in fade-in zoom-in-95 duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/90 backdrop-blur-md p-4 duration-200"
       onClick={onClose}
     >
       <div 
@@ -577,234 +577,186 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                        </div>
                        <div>
                           <h3 className="text-xl font-bold text-navy-900 dark:text-white">Manual Entry</h3>
-                          <p className="text-xs text-gray-500 font-mono">ADD REVIEW MANUALLY</p>
+                          <p className="text-xs text-gray-500 font-mono">ADD TESTIMONIAL</p>
                        </div>
                     </div>
 
                     <form onSubmit={handleSubmitReview} className="space-y-6">
-                       <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                             <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Client Name</label>
-                             <div className="relative">
-                               <User className="absolute left-3 top-3.5 text-gray-400" size={18} />
-                               <input 
-                                  type="text" 
-                                  value={reviewForm.name}
-                                  onChange={(e) => setReviewForm({...reviewForm, name: e.target.value})}
-                                  className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
-                                  placeholder="Client Name"
-                               />
-                             </div>
-                          </div>
-                          <div className="space-y-2">
-                             <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Role</label>
-                             <input 
-                                type="text" 
-                                value={reviewForm.role}
-                                onChange={(e) => setReviewForm({...reviewForm, role: e.target.value})}
-                                className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
-                                placeholder="e.g. YouTuber"
-                             />
-                          </div>
-                       </div>
-                       
-                       <div className="space-y-2">
-                          <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Rating</label>
-                          <div className="flex gap-2">
-                             {[1, 2, 3, 4, 5].map((star) => (
-                                <button
-                                   key={star}
-                                   type="button"
-                                   onClick={() => setReviewForm({...reviewForm, stars: star})}
-                                   className={`transition-transform hover:scale-110 ${reviewForm.stars >= star ? 'text-brand-500' : 'text-gray-300 dark:text-gray-700'}`}
-                                >
-                                   <Star size={32} fill={reviewForm.stars >= star ? "currentColor" : "none"} />
-                                </button>
-                             ))}
-                          </div>
-                       </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Name</label>
+                                <input 
+                                    type="text"
+                                    required
+                                    value={reviewForm.name}
+                                    onChange={e => setReviewForm({...reviewForm, name: e.target.value})}
+                                    className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
+                                    placeholder="Client Name"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Role</label>
+                                <input 
+                                    type="text"
+                                    value={reviewForm.role}
+                                    onChange={e => setReviewForm({...reviewForm, role: e.target.value})}
+                                    className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
+                                    placeholder="e.g. CEO"
+                                />
+                            </div>
+                        </div>
 
-                       <div className="space-y-2">
-                          <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Review Text</label>
-                          <textarea 
-                             value={reviewForm.text}
-                             onChange={(e) => setReviewForm({...reviewForm, text: e.target.value})}
-                             className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 h-32 resize-none"
-                             placeholder="Copy paste review here..."
-                          />
-                       </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Review</label>
+                            <textarea
+                                required
+                                value={reviewForm.text}
+                                onChange={e => setReviewForm({...reviewForm, text: e.target.value})}
+                                className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 h-24 resize-none"
+                                placeholder="Feedback text..."
+                            />
+                        </div>
 
-                       <button
-                        type="submit"
-                        className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg hover:shadow-xl dark:shadow-glow uppercase tracking-wider"
-                      >
-                        <Save size={20} />
-                        Save Review
-                      </button>
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Rating</label>
+                           <div className="flex gap-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                 <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setReviewForm({...reviewForm, stars: star})}
+                                    className={`transition-transform hover:scale-110 ${reviewForm.stars >= star ? 'text-brand-500' : 'text-gray-300 dark:text-gray-700'}`}
+                                 >
+                                    <Star size={24} fill={reviewForm.stars >= star ? "currentColor" : "none"} />
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg hover:shadow-xl dark:shadow-glow dark:hover:shadow-glow-lg uppercase tracking-wider"
+                        >
+                            <Plus size={20} /> Add Review
+                        </button>
                     </form>
                   </div>
                )}
-            </div>
           </div>
-
-          {/* Right Column: Reviews & Database List */}
-          <div className="lg:col-span-7 space-y-8">
-            
-            {/* Review Inbox - Pending */}
-            <div className={`space-y-4 ${pendingReviews.length > 0 ? '' : 'hidden'}`}>
-               <h3 className="text-xl font-bold text-navy-900 dark:text-white flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-white/5">
-                 <MessageSquare className="text-brand-600 dark:text-brand-500" size={20} />
-                 Review Inbox
-                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingReviews.length} New</span>
-               </h3>
-               
-               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
-                  {pendingReviews.map(review => (
-                     <div key={review.id} className="relative bg-white dark:bg-dark-800 p-4 rounded-xl border-l-4 border-brand-500 shadow-md">
-                        <div className="flex justify-between items-start mb-2">
-                           <div>
-                              <div className="font-bold text-navy-900 dark:text-white flex items-center gap-2">
-                                 {review.name}
-                                 <span className="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-black/30 px-2 py-0.5 rounded-full">{review.role}</span>
-                              </div>
-                              <div className="flex text-brand-500 text-xs mt-1">
-                                 {[...Array(5)].map((_, i) => (
-                                    <Star key={i} size={12} fill={i < review.stars ? "currentColor" : "none"} className={i >= review.stars ? "text-gray-300" : ""} />
-                                 ))}
-                              </div>
-                           </div>
-                           <div className="flex gap-2 z-20">
-                              <button 
-                                 type="button"
-                                 onClick={(e) => handleApproveReview(review.id, e)}
-                                 className="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-lg transition"
-                                 title="Approve & Publish"
-                              >
-                                 <Check size={16} />
-                              </button>
-                              <button 
-                                 type="button"
-                                 onClick={(e) => handleDeleteReview(review.id, e)}
-                                 className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition"
-                                 title="Reject"
-                              >
-                                 <Ban size={16} />
-                              </button>
-                           </div>
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm italic">"{review.text}"</p>
-                     </div>
-                  ))}
-               </div>
-            </div>
-
-            {/* Published Reviews - Approved */}
-            <div className="space-y-4">
-               <h3 className="text-xl font-bold text-navy-900 dark:text-white flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-white/5">
-                 <Check className="text-green-600 dark:text-green-500" size={20} />
-                 Published Reviews
-                 <span className="text-gray-500 text-sm font-normal font-mono ml-auto">COUNT: {activeReviews.length}</span>
-               </h3>
-
-               {activeReviews.length === 0 ? (
-                 <div className="p-6 text-center border-2 border-dashed border-gray-200 dark:border-white/5 rounded-xl text-gray-500 text-sm">
-                   No reviews published yet.
-                 </div>
-               ) : (
-                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
-                    {activeReviews.map(review => (
-                       <div key={review.id} className="relative bg-gray-50 dark:bg-dark-800 p-4 rounded-xl border border-gray-200 dark:border-white/5 flex justify-between items-start group hover:border-brand-500/30 transition">
-                          <div>
-                             <div className="font-bold text-navy-900 dark:text-white flex items-center gap-2">
-                                {review.name}
-                                <span className="text-[10px] font-bold uppercase text-gray-400 border border-gray-200 dark:border-white/10 px-1.5 rounded">{review.role}</span>
-                             </div>
-                             <div className="flex text-brand-500 text-xs my-1">
-                                {[...Array(5)].map((_, i) => (
-                                   <Star key={i} size={10} fill={i < review.stars ? "currentColor" : "none"} className={i >= review.stars ? "text-gray-300 dark:text-gray-700" : ""} />
-                                ))}
-                             </div>
-                             <p className="text-gray-600 dark:text-gray-400 text-xs italic line-clamp-2">"{review.text}"</p>
-                          </div>
-                          <button 
-                             type="button"
-                             onClick={(e) => handleDeleteReview(review.id, e)}
-                             className="relative z-20 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-lg transition"
-                             title="Delete Review"
-                          >
-                             <Trash2 size={16} />
-                          </button>
-                       </div>
-                    ))}
-                 </div>
-               )}
-            </div>
-
-            {/* Video Database */}
-            <div className="space-y-6">
-               <h3 className="text-xl font-bold text-navy-900 dark:text-white flex items-center gap-2 pb-4 border-b border-gray-200 dark:border-white/5">
-                 <Hash className="text-brand-600 dark:text-brand-500" size={20} />
-                 Video Database 
-                 <span className="text-gray-500 text-sm font-normal font-mono ml-auto">COUNT: {videos.length}</span>
-               </h3>
-
-               {/* Search Bar */}
-               <div className="relative group">
-                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-600 group-focus-within:text-brand-600 dark:group-focus-within:text-brand-500 transition-colors">
-                     <Search size={18} />
-                 </div>
-                 <input
-                   type="text"
-                   placeholder="Search database..."
-                   value={searchTerm}
-                   onChange={(e) => setSearchTerm(e.target.value)}
-                   className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-navy-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-700 focus:outline-none focus:border-brand-500 focus:shadow-sm dark:focus:shadow-glow-sm transition text-sm"
-                 />
-               </div>
-
-               <div className="relative group rounded-2xl">
-                 <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-500 via-brand-200 to-brand-500 rounded-2xl opacity-0 group-hover:opacity-50 blur-sm transition duration-500 bg-[length:200%_100%] animate-shimmer pointer-events-none"></div>
-                 
-                 <div className="relative space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-2 rounded-2xl bg-gray-50/50 dark:bg-black/40 border border-gray-200 dark:border-white/5 backdrop-blur-sm z-10">
-                   {filteredVideos.map(video => (
-                     <div key={video.id} className="relative bg-gray-50 dark:bg-dark-800 p-5 rounded-xl border border-gray-200 dark:border-white/5 flex justify-between items-center group/item hover:border-brand-500/50 hover:bg-gray-100 dark:hover:bg-dark-800/80 transition duration-300">
-                       <div className="flex-1 min-w-0 pr-4">
-                         <h4 className="font-bold text-navy-900 dark:text-white truncate group-hover/item:text-brand-600 dark:group-hover/item:text-brand-500 transition">{video.title}</h4>
-                         <div className="flex items-center gap-2 mt-2">
-                            <span className="text-[10px] font-bold uppercase bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded flex items-center gap-1">
-                               <Layout size={10} /> {video.category}
-                            </span>
-                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded flex items-center gap-1 ${video.type === 'youtube' ? 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-500 border border-red-200 dark:border-red-500/20' : 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-500 border border-blue-200 dark:border-blue-500/20'}`}>
-                               {video.type === 'youtube' ? <Youtube size={10} /> : <HardDrive size={10} />}
-                               {video.type}
-                            </span>
-                            {video.timestamp > 0 && (
-                              <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                                <Clock size={10} /> {video.timestamp}s
-                              </span>
-                            )}
-                         </div>
-                       </div>
-                       <button
-                         type="button"
-                         onClick={(e) => handleDeleteVideoClick(video.id, e)}
-                         className="relative z-20 text-gray-400 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-3 rounded-xl transition"
-                         title="Delete Clip"
-                       >
-                         <Trash2 size={20} />
-                       </button>
-                     </div>
-                   ))}
-                   {filteredVideos.length === 0 && (
-                     <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-white/5 rounded-2xl">
-                        <p className="text-gray-500 dark:text-gray-600 font-mono text-sm uppercase tracking-widest">
-                          {searchTerm ? "No matches found" : "Database Empty"}
-                        </p>
-                     </div>
+          
+          {/* Right Column: List View */}
+          <div className="lg:col-span-7 bg-gray-50 dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden">
+             {/* Search/Filter Header */}
+             <div className="p-4 border-b border-gray-200 dark:border-white/5 flex gap-4 bg-white dark:bg-black/20">
+                <div className="relative flex-1">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                   <input 
+                      type="text" 
+                      placeholder="Search database..." 
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="w-full bg-gray-100 dark:bg-dark-900/50 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-brand-500 text-navy-900 dark:text-white"
+                   />
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2">
+                   {activeTab === 'video' ? (
+                      <><HardDrive size={14} /> {filteredVideos.length} Clips</>
+                   ) : (
+                      <><User size={14} /> {reviews.length} Reviews</>
                    )}
-                 </div>
-               </div>
-            </div>
+                </div>
+             </div>
+
+             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {activeTab === 'video' ? (
+                   filteredVideos.length > 0 ? (
+                      filteredVideos.map(video => (
+                         <div key={video.id} className="group bg-white dark:bg-dark-900 p-4 rounded-xl border border-gray-200 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 transition-colors flex gap-4 items-center">
+                            <div className="w-24 aspect-video bg-gray-100 dark:bg-black rounded-lg overflow-hidden shrink-0 relative">
+                               <img 
+                                  src={video.thumbnail || (video.type === 'youtube' ? `https://img.youtube.com/vi/${video.url.split('v=')[1]?.split('&')[0]}/default.jpg` : '')} 
+                                  alt="" 
+                                  className="w-full h-full object-cover opacity-80"
+                                  onError={(e) => (e.target as HTMLImageElement).style.backgroundColor = '#222'}
+                               />
+                               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                  {video.type === 'youtube' ? <Youtube size={16} className="text-white" /> : <HardDrive size={16} className="text-white" />}
+                               </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                               <h4 className="font-bold text-navy-900 dark:text-white truncate">{video.title}</h4>
+                               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  <span className="bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{video.category}</span>
+                                  <span className="truncate max-w-[150px]">{video.url}</span>
+                               </div>
+                            </div>
+                            <button 
+                               onClick={(e) => handleDeleteVideoClick(video.id, e)}
+                               className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                               title="Delete Clip"
+                            >
+                               <Trash2 size={18} />
+                            </button>
+                         </div>
+                      ))
+                   ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-2 opacity-50">
+                         <Search size={32} />
+                         <p className="text-sm font-mono">NO RECORDS FOUND</p>
+                      </div>
+                   )
+                ) : (
+                   reviews.length > 0 ? (
+                      reviews.sort((a,b) => (a.status === 'pending' ? -1 : 1)).map(review => (
+                         <div key={review.id} className={`group bg-white dark:bg-dark-900 p-4 rounded-xl border transition-colors flex gap-4 items-start ${review.status === 'pending' ? 'border-brand-500/50 shadow-[0_0_15px_rgba(var(--brand-500),0.1)]' : 'border-gray-200 dark:border-white/5'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shrink-0 ${review.status === 'pending' ? 'bg-brand-500 animate-pulse' : 'bg-gray-300 dark:bg-dark-700'}`}>
+                               {review.name.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                               <div className="flex justify-between items-start">
+                                  <div>
+                                     <h4 className="font-bold text-navy-900 dark:text-white flex items-center gap-2">
+                                        {review.name}
+                                        {review.status === 'pending' && <span className="text-[10px] bg-brand-500 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">New</span>}
+                                     </h4>
+                                     <p className="text-xs text-brand-500 font-bold uppercase tracking-wide">{review.role}</p>
+                                  </div>
+                                  <div className="flex text-brand-400">
+                                     {[...Array(5)].map((_, i) => (
+                                        <Star key={i} size={10} fill={i < review.stars ? "currentColor" : "none"} className={i < review.stars ? "" : "text-gray-200 dark:text-dark-600"} />
+                                     ))}
+                                  </div>
+                               </div>
+                               <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">"{review.text}"</p>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                               {review.status === 'pending' && (
+                                  <button 
+                                     onClick={(e) => handleApproveReview(review.id, e)}
+                                     className="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition"
+                                     title="Approve"
+                                  >
+                                     <Check size={16} />
+                                  </button>
+                               )}
+                               <button 
+                                  onClick={(e) => handleDeleteReview(review.id, e)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                                  title="Delete"
+                               >
+                                  <Trash2 size={16} />
+                               </button>
+                            </div>
+                         </div>
+                      ))
+                   ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-2 opacity-50">
+                         <MessageSquare size={32} />
+                         <p className="text-sm font-mono">NO REVIEWS FOUND</p>
+                      </div>
+                   )
+                )}
+             </div>
           </div>
         </div>
       </div>

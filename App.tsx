@@ -824,6 +824,94 @@ export function App() {
          </div>
       )}
 
+      {/* Password Prompt Modal */}
+      {showPasswordPrompt && (
+        <div 
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 dark:bg-black/95 backdrop-blur-xl p-4 duration-200"
+          onClick={() => {
+            if (!isLockedOut) setShowPasswordPrompt(false);
+          }}
+        >
+          <form 
+            onSubmit={handleAuthSubmit}
+            onClick={e => e.stopPropagation()}
+            className={`w-full max-w-md bg-white dark:bg-dark-900 rounded-3xl border shadow-2xl dark:shadow-[0_0_50px_rgba(255,108,12,0.2)] p-8 relative overflow-hidden transition-colors duration-500 ${isLockedOut ? 'border-red-600' : 'border-gray-200 dark:border-brand-900/50'}`}
+          >
+            {/* Background Tech Elements */}
+            <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent to-transparent ${isLockedOut ? 'via-red-600' : 'via-brand-600'}`}></div>
+            <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl ${isLockedOut ? 'bg-red-600/10' : 'bg-brand-600/10'}`}></div>
+            
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className={`w-20 h-20 bg-gray-50 dark:bg-dark-800 rounded-full border flex items-center justify-center mb-4 shadow-sm dark:shadow-glow relative group transition-colors duration-300 ${isLockedOut ? 'border-red-500/30' : 'border-gray-200 dark:border-brand-500/30'}`}>
+                <div className={`absolute inset-0 rounded-full blur-xl opacity-20 animate-pulse ${isLockedOut ? 'bg-red-500' : 'bg-brand-500'}`}></div>
+                {isLockedOut ? (
+                   <AlertTriangle className="text-red-500 w-8 h-8 animate-pulse" />
+                ) : authError ? (
+                  <Lock className="text-red-500 w-8 h-8 animate-pulse" />
+                ) : (
+                  <Shield className="text-brand-600 dark:text-brand-500 w-8 h-8" />
+                )}
+              </div>
+              <h3 className={`text-2xl font-black uppercase tracking-widest ${isLockedOut ? 'text-red-500 animate-pulse' : 'text-navy-900 dark:text-white'}`}>
+                {isLockedOut ? 'SYSTEM LOCKDOWN' : 'Security Clearance'}
+              </h3>
+              <p className="text-gray-500 text-xs mt-2 font-mono tracking-wider">
+                {isLockedOut ? 'UNAUTHORIZED ATTEMPTS DETECTED' : 'RESTRICTED ACCESS // AUTHORIZED PERSONNEL ONLY'}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {isLockedOut ? (
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-500/30 rounded-xl p-6 text-center">
+                   <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-500 font-mono text-4xl font-bold mb-2">
+                      <Timer className="w-8 h-8 animate-spin-slow" />
+                      {lockoutTimer}s
+                   </div>
+                   <p className="text-red-500 dark:text-red-400 text-xs uppercase tracking-widest">Authentication Suspended</p>
+                </div>
+              ) : (
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Key className={`w-5 h-5 transition-colors ${authError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-focus-within:text-brand-500'}`} />
+                  </div>
+                  <input
+                    ref={passwordInputRef}
+                    type="password"
+                    value={passwordInput}
+                    onChange={(e) => {
+                      setPasswordInput(e.target.value);
+                      if (authError) setAuthError(false);
+                    }}
+                    className={`w-full bg-gray-50 dark:bg-dark-800 border-2 rounded-xl py-4 pl-12 pr-4 text-navy-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition-all font-mono text-center tracking-[0.5em] ${
+                      authError 
+                        ? 'border-red-300 dark:border-red-900/50 focus:border-red-500 focus:shadow-lg dark:focus:shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-shake' 
+                        : 'border-gray-200 dark:border-white/5 focus:border-brand-500 focus:shadow-sm dark:focus:shadow-glow-sm'
+                    }`}
+                    placeholder="••••••••••••"
+                    disabled={isLockedOut}
+                  />
+                </div>
+              )}
+
+              {!isLockedOut && authError && (
+                 <p className="text-red-500 text-xs font-bold text-center tracking-widest animate-pulse">
+                   ACCESS DENIED: INVALID KEY ({MAX_ATTEMPTS - failedAttempts} attempts remaining)
+                 </p>
+              )}
+
+              {!isLockedOut && (
+                <button
+                  type="submit"
+                  className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-brand-600 dark:hover:bg-brand-500 hover:text-white dark:hover:text-white font-black py-4 rounded-xl uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-xl dark:hover:shadow-glow flex items-center justify-center gap-2 mt-4"
+                >
+                  Authenticate
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Video Modal */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 dark:bg-black/95 backdrop-blur-xl p-4 animate-in fade-in duration-300" onClick={() => setSelectedVideo(null)}>
