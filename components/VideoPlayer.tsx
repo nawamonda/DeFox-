@@ -25,7 +25,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ clip, autoPlay = false }) => 
 
       const startParam = clip.timestamp ? `&start=${clip.timestamp}` : '';
       const autoplayParam = autoPlay ? '&autoplay=1' : '';
-      return `https://www.youtube.com/embed/${videoId}?rel=0&enablejsapi=1${startParam}${autoplayParam}`;
+      // Ensure origin is set for iframe policy compatibility
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      return `https://www.youtube.com/embed/${videoId}?rel=0&enablejsapi=1&origin=${origin}${startParam}${autoplayParam}`;
     }
     
     if (clip.type === 'drive') {

@@ -218,9 +218,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
     const newValue = Math.min(100, Math.max(0, value));
     const newSkills = { ...skillForm, [key]: newValue };
     setSkillForm(newSkills);
-    // Real-time update removed to allow "Save" button to feel impactful, 
-    // OR we keep real-time and button just confirms. 
-    // Let's keep real-time for responsiveness but adding the button gives user confirmation closure.
     onUpdateSkills(newSkills);
     setConfigSaved(false);
   };
@@ -243,6 +240,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
     if (window.confirm('Delete this review permanently?')) {
        const updated = reviews.filter(r => r.id !== id);
        onUpdateReviews(updated);
+    }
+  };
+  
+  const handleDeleteVideoClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this clip from the database?')) {
+        onDeleteVideo(id);
     }
   };
 
@@ -654,9 +658,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{pendingReviews.length} New</span>
                </h3>
                
-               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
                   {pendingReviews.map(review => (
-                     <div key={review.id} className="bg-white dark:bg-dark-800 p-4 rounded-xl border-l-4 border-brand-500 shadow-md">
+                     <div key={review.id} className="relative bg-white dark:bg-dark-800 p-4 rounded-xl border-l-4 border-brand-500 shadow-md">
                         <div className="flex justify-between items-start mb-2">
                            <div>
                               <div className="font-bold text-navy-900 dark:text-white flex items-center gap-2">
@@ -669,8 +673,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                                  ))}
                               </div>
                            </div>
-                           <div className="flex gap-2">
+                           <div className="flex gap-2 z-20">
                               <button 
+                                 type="button"
                                  onClick={(e) => handleApproveReview(review.id, e)}
                                  className="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-lg transition"
                                  title="Approve & Publish"
@@ -678,6 +683,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                                  <Check size={16} />
                               </button>
                               <button 
+                                 type="button"
                                  onClick={(e) => handleDeleteReview(review.id, e)}
                                  className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition"
                                  title="Reject"
@@ -705,9 +711,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                    No reviews published yet.
                  </div>
                ) : (
-                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
                     {activeReviews.map(review => (
-                       <div key={review.id} className="bg-gray-50 dark:bg-dark-800 p-4 rounded-xl border border-gray-200 dark:border-white/5 flex justify-between items-start group hover:border-brand-500/30 transition">
+                       <div key={review.id} className="relative bg-gray-50 dark:bg-dark-800 p-4 rounded-xl border border-gray-200 dark:border-white/5 flex justify-between items-start group hover:border-brand-500/30 transition">
                           <div>
                              <div className="font-bold text-navy-900 dark:text-white flex items-center gap-2">
                                 {review.name}
@@ -721,8 +727,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                              <p className="text-gray-600 dark:text-gray-400 text-xs italic line-clamp-2">"{review.text}"</p>
                           </div>
                           <button 
+                             type="button"
                              onClick={(e) => handleDeleteReview(review.id, e)}
-                             className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-lg transition"
+                             className="relative z-20 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-2 rounded-lg transition"
                              title="Delete Review"
                           >
                              <Trash2 size={16} />
@@ -756,11 +763,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                </div>
 
                <div className="relative group rounded-2xl">
-                 <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-500 via-brand-200 to-brand-500 rounded-2xl opacity-0 group-hover:opacity-50 blur-sm transition duration-500 bg-[length:200%_100%] animate-shimmer"></div>
+                 <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-500 via-brand-200 to-brand-500 rounded-2xl opacity-0 group-hover:opacity-50 blur-sm transition duration-500 bg-[length:200%_100%] animate-shimmer pointer-events-none"></div>
                  
-                 <div className="relative space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-2 rounded-2xl bg-gray-50/50 dark:bg-black/40 border border-gray-200 dark:border-white/5 backdrop-blur-sm">
+                 <div className="relative space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-2 rounded-2xl bg-gray-50/50 dark:bg-black/40 border border-gray-200 dark:border-white/5 backdrop-blur-sm z-10">
                    {filteredVideos.map(video => (
-                     <div key={video.id} className="bg-gray-50 dark:bg-dark-800 p-5 rounded-xl border border-gray-200 dark:border-white/5 flex justify-between items-center group/item hover:border-brand-500/50 hover:bg-gray-100 dark:hover:bg-dark-800/80 transition duration-300">
+                     <div key={video.id} className="relative bg-gray-50 dark:bg-dark-800 p-5 rounded-xl border border-gray-200 dark:border-white/5 flex justify-between items-center group/item hover:border-brand-500/50 hover:bg-gray-100 dark:hover:bg-dark-800/80 transition duration-300">
                        <div className="flex-1 min-w-0 pr-4">
                          <h4 className="font-bold text-navy-900 dark:text-white truncate group-hover/item:text-brand-600 dark:group-hover/item:text-brand-500 transition">{video.title}</h4>
                          <div className="flex items-center gap-2 mt-2">
@@ -779,8 +786,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVid
                          </div>
                        </div>
                        <button
-                         onClick={() => onDeleteVideo(video.id)}
-                         className="text-gray-400 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-3 rounded-xl transition"
+                         type="button"
+                         onClick={(e) => handleDeleteVideoClick(video.id, e)}
+                         className="relative z-20 text-gray-400 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 p-3 rounded-xl transition"
                          title="Delete Clip"
                        >
                          <Trash2 size={20} />
