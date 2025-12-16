@@ -466,6 +466,7 @@ export function App() {
               </div>
            </div>
         </div>
+        </div>
       </header>
 
       {/* Stats/Why Choose Me Section */}
