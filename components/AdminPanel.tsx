@@ -30,7 +30,8 @@ import {
   RotateCcw,
   Palette,
   Edit2,
-  RefreshCw
+  RefreshCw,
+  Upload
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -67,6 +68,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onUpdateBannerImage
 }) => {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const profileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  
   const [activeTab, setActiveTab] = useState<'video' | 'review'>('video');
   const [editingId, setEditingId] = useState<string | null>(null);
   
@@ -265,14 +269,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const newValue = Math.min(100, Math.max(0, value));
     const newSkills = { ...skillForm, [key]: newValue };
     setSkillForm(newSkills);
-    // Removed direct onUpdateSkills(newSkills) call to prevent continuous saves/updates
-    // Now saves only when "Save Configuration" is clicked.
     setConfigSaved(false);
   };
 
   const handleVisualChange = (key: 'profile' | 'banner', value: string) => {
      setVisualForm(prev => ({ ...prev, [key]: value }));
      setConfigSaved(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: 'profile' | 'banner') => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Limit to 2MB to prevent LocalStorage quota issues
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image is too large (max 2MB). Please compress it or use an external URL.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          handleVisualChange(key, event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveConfig = () => {
@@ -388,26 +410,71 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Visual Identity</span>
                       </div>
                       
-                      <div className="space-y-4">
+                      <div className="space-y-6">
+                         {/* Profile Image Input */}
                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Profile Image URL</label>
-                            <input 
-                               type="url"
-                               value={visualForm.profile}
-                               onChange={(e) => handleVisualChange('profile', e.target.value)}
-                               className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
-                               placeholder="https://..."
-                            />
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Profile Image</label>
+                                <button 
+                                    type="button"
+                                    onClick={() => profileInputRef.current?.click()}
+                                    className="text-[10px] font-bold text-brand-500 hover:text-brand-600 flex items-center gap-1 uppercase"
+                                >
+                                    <Upload size={12} /> Upload File
+                                </button>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-white/10 overflow-hidden shrink-0 relative">
+                                     <img src={visualForm.profile} alt="Preview" className="w-full h-full object-cover" onError={e => e.currentTarget.style.display = 'none'} />
+                                </div>
+                                <input 
+                                   type="url"
+                                   value={visualForm.profile}
+                                   onChange={(e) => handleVisualChange('profile', e.target.value)}
+                                   className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 font-mono"
+                                   placeholder="https://..."
+                                />
+                                <input 
+                                    type="file" 
+                                    ref={profileInputRef} 
+                                    className="hidden" 
+                                    accept="image/*" 
+                                    onChange={(e) => handleFileChange(e, 'profile')} 
+                                />
+                            </div>
                          </div>
+
+                         {/* Banner Image Input */}
                          <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Banner Image URL</label>
-                            <input 
-                               type="url"
-                               value={visualForm.banner}
-                               onChange={(e) => handleVisualChange('banner', e.target.value)}
-                               className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
-                               placeholder="https://..."
-                            />
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Banner Image</label>
+                                <button 
+                                    type="button"
+                                    onClick={() => bannerInputRef.current?.click()}
+                                    className="text-[10px] font-bold text-brand-500 hover:text-brand-600 flex items-center gap-1 uppercase"
+                                >
+                                    <Upload size={12} /> Upload File
+                                </button>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="w-20 h-12 rounded-lg bg-gray-100 dark:bg-black border border-gray-200 dark:border-white/10 overflow-hidden shrink-0 relative">
+                                     <img src={visualForm.banner} alt="Preview" className="w-full h-full object-cover" onError={e => e.currentTarget.style.display = 'none'} />
+                                </div>
+                                <input 
+                                   type="url"
+                                   value={visualForm.banner}
+                                   onChange={(e) => handleVisualChange('banner', e.target.value)}
+                                   className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 font-mono"
+                                   placeholder="https://..."
+                                />
+                                <input 
+                                    type="file" 
+                                    ref={bannerInputRef} 
+                                    className="hidden" 
+                                    accept="image/*" 
+                                    onChange={(e) => handleFileChange(e, 'banner')} 
+                                />
+                            </div>
                          </div>
                       </div>
                    </div>
