@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { VideoClip, SkillSet, Review } from '../types';
 import { 
   Plus, 
@@ -96,6 +96,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
      profile: profileImage,
      banner: bannerImage
   });
+
+  // Sync state with props when they change (e.g. after Reset Data)
+  useEffect(() => {
+    setSkillForm(skills);
+  }, [skills]);
+
+  useEffect(() => {
+    setVisualForm({ profile: profileImage, banner: bannerImage });
+  }, [profileImage, bannerImage]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -256,7 +265,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const newValue = Math.min(100, Math.max(0, value));
     const newSkills = { ...skillForm, [key]: newValue };
     setSkillForm(newSkills);
-    onUpdateSkills(newSkills);
+    // Removed direct onUpdateSkills(newSkills) call to prevent continuous saves/updates
+    // Now saves only when "Save Configuration" is clicked.
     setConfigSaved(false);
   };
 
@@ -266,6 +276,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleSaveConfig = () => {
+    // Commit all changes to parent state and LocalStorage here
     onUpdateSkills(skillForm);
     onUpdateProfileImage(visualForm.profile);
     onUpdateBannerImage(visualForm.banner);
