@@ -284,6 +284,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       // Limit to 2MB to prevent LocalStorage quota issues
       if (file.size > 2 * 1024 * 1024) {
         alert("Image is too large (max 2MB). Please compress it or use an external URL.");
+        e.target.value = ''; // Reset input
         return;
       }
 
@@ -294,6 +295,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         }
       };
       reader.readAsDataURL(file);
+      e.target.value = ''; // Reset input to allow re-selection
     }
   };
 
@@ -307,13 +309,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleApproveReview = (id: string, e?: React.MouseEvent) => {
-    if(e) e.stopPropagation();
+    if(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const updated = reviews.map(r => r.id === id ? { ...r, status: 'approved' as const } : r);
     onUpdateReviews(updated);
   };
 
   const handleDeleteReview = (id: string, e?: React.MouseEvent) => {
-    if(e) e.stopPropagation();
+    if(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (window.confirm('Delete this review permanently?')) {
        const updated = reviews.filter(r => r.id !== id);
        onUpdateReviews(updated);
@@ -321,6 +329,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
   
   const handleDeleteVideoClick = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this clip from the database?')) {
         if (editingId === id) {
@@ -428,7 +437,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                      <img src={visualForm.profile} alt="Preview" className="w-full h-full object-cover" onError={e => e.currentTarget.style.display = 'none'} />
                                 </div>
                                 <input 
-                                   type="url"
+                                   type="text"
                                    value={visualForm.profile}
                                    onChange={(e) => handleVisualChange('profile', e.target.value)}
                                    className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 font-mono"
@@ -461,7 +470,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                      <img src={visualForm.banner} alt="Preview" className="w-full h-full object-cover" onError={e => e.currentTarget.style.display = 'none'} />
                                 </div>
                                 <input 
-                                   type="url"
+                                   type="text"
                                    value={visualForm.banner}
                                    onChange={(e) => handleVisualChange('banner', e.target.value)}
                                    className="flex-1 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 font-mono"
@@ -864,6 +873,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             </div>
                             <div className="flex items-center gap-1">
                               <button 
+                                 type="button"
                                  onClick={() => handleEditClick(video)}
                                  className={`p-2 rounded-lg transition ${editingId === video.id ? 'bg-brand-500 text-white' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20'}`}
                                  title="Edit Clip"
@@ -871,6 +881,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                  <Edit2 size={18} />
                               </button>
                               <button 
+                                 type="button"
                                  onClick={(e) => handleDeleteVideoClick(video.id, e)}
                                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
                                  title="Delete Clip"
@@ -913,6 +924,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             <div className="flex flex-col gap-1">
                                {review.status === 'pending' && (
                                   <button 
+                                     type="button"
                                      onClick={(e) => handleApproveReview(review.id, e)}
                                      className="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition"
                                      title="Approve"
@@ -921,6 +933,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   </button>
                                )}
                                <button 
+                                  type="button"
                                   onClick={(e) => handleDeleteReview(review.id, e)}
                                   className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
                                   title="Delete"

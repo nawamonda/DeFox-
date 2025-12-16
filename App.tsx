@@ -113,23 +113,47 @@ export function App() {
   const [bannerImage, setBannerImage] = useState(() => localStorage.getItem('defox-banner') || BANNER_IMAGE);
 
   useEffect(() => {
-    localStorage.setItem('defox-videos', JSON.stringify(videos));
+    try {
+      localStorage.setItem('defox-videos', JSON.stringify(videos));
+    } catch (e) {
+      console.error("Storage Error:", e);
+      alert("Warning: Storage quota exceeded. Video changes may not persist.");
+    }
   }, [videos]);
 
   useEffect(() => {
-    localStorage.setItem('defox-skills', JSON.stringify(skills));
+    try {
+      localStorage.setItem('defox-skills', JSON.stringify(skills));
+    } catch (e) {
+       console.error("Storage Error:", e);
+    }
   }, [skills]);
 
   useEffect(() => {
-    localStorage.setItem('defox-reviews', JSON.stringify(reviews));
+    try {
+      localStorage.setItem('defox-reviews', JSON.stringify(reviews));
+    } catch (e) {
+       console.error("Storage Error:", e);
+       alert("Warning: Storage quota exceeded. Review changes may not persist.");
+    }
   }, [reviews]);
 
   useEffect(() => {
-    localStorage.setItem('defox-profile', profileImage);
+    try {
+      localStorage.setItem('defox-profile', profileImage);
+    } catch (e) {
+       console.error("Storage Error:", e);
+       alert("Storage full! Profile image updates will not persist.");
+    }
   }, [profileImage]);
 
   useEffect(() => {
-    localStorage.setItem('defox-banner', bannerImage);
+    try {
+      localStorage.setItem('defox-banner', bannerImage);
+    } catch (e) {
+       console.error("Storage Error:", e);
+       alert("Storage full! Banner image updates will not persist.");
+    }
   }, [bannerImage]);
 
   const handleUpdateSkills = (newSkills: SkillSet) => {
