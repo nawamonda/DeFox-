@@ -134,8 +134,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const parsedUrl = new URL(cleanUrl);
       
       if (type === 'youtube') {
-        // Robust regex to find 11-char ID in various YouTube URL formats
-        // Supports: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID, youtube.com/embed/ID
         const ytRegex = /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[?&].*)?$/;
         const match = cleanUrl.match(ytRegex);
         
@@ -150,8 +148,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           return { isValid: false, error: "URL must be from drive.google.com." };
         }
         
-        // Check for File ID in path or query parameters
-        // Matches: /file/d/ID or ?id=ID
         const fileIdRegex = /(?:\/file\/d\/|id=)([-a-zA-Z0-9_]+)/;
         const match = cleanUrl.match(fileIdRegex);
         
@@ -162,10 +158,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       }
 
       if (type === 'direct') {
-         // Basic extension check for direct files
          if (!parsedUrl.pathname.match(/\.(mp4|webm|mov|m4v)$/i)) {
-            // Warn but allow, as some direct links might not have extensions (signed URLs)
-            // return { isValid: true }; 
+            // Warn but allow
          }
          return { isValid: true };
       }
@@ -180,20 +174,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     e.preventDefault();
     setError(null);
 
-    // Basic Validation
     if (!formData.title?.trim()) {
       setError("Title is required.");
       return;
     }
     
-    // Validate URL using strict rules
     const urlValidation = validateMediaUrl(formData.url || '', formData.type || 'youtube');
     if (!urlValidation.isValid) {
       setError(urlValidation.error || "Invalid URL");
       return;
     }
 
-    // Timestamp Validation
     if (formData.timestamp && formData.timestamp < 0) {
       setError("Start time cannot be negative.");
       return;
@@ -216,7 +207,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
        onAddVideo(videoData);
     }
     
-    // Reset Form
     resetForm();
   };
 
@@ -254,7 +244,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       role: reviewForm.role || 'Client',
       text: reviewForm.text,
       stars: reviewForm.stars,
-      status: 'approved', // Admin manually added reviews are auto-approved
+      status: 'approved',
       date: new Date().toISOString()
     };
 
@@ -283,7 +273,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setTimeout(() => setConfigSaved(false), 2000);
   };
 
-  // Review Handlers
   const handleApproveReview = (id: string, e?: React.MouseEvent) => {
     if(e) e.stopPropagation();
     const updated = reviews.map(r => r.id === id ? { ...r, status: 'approved' as const } : r);
@@ -301,7 +290,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const handleDeleteVideoClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this clip from the database?')) {
-        // If we are currently editing this video, clear the form
         if (editingId === id) {
            resetForm();
         }
@@ -747,6 +735,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </form>
                   </div>
                )}
+            </div>
           </div>
           
           {/* Right Column: List View */}
@@ -779,7 +768,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                          <div key={video.id} className={`group bg-white dark:bg-dark-900 p-4 rounded-xl border transition-colors flex gap-4 items-center ${editingId === video.id ? 'border-brand-500 shadow-[0_0_15px_rgba(var(--brand-500),0.1)]' : 'border-gray-200 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500'}`}>
                             <div className="w-24 aspect-video bg-gray-100 dark:bg-black rounded-lg overflow-hidden shrink-0 relative">
                                <img 
-                                  src={video.thumbnail || (video.type === 'youtube' ? `https://img.youtube.com/vi/${video.url.split('v=')[1]?.split('&')[0]}/default.jpg` : '')} 
+                                  src={video.thumbnail || (video.type === 'youtube' && video.url.includes('v=') ? `https://img.youtube.com/vi/${video.url.split('v=')[1]?.split('&')[0]}/default.jpg` : '')} 
                                   alt="" 
                                   className="w-full h-full object-cover opacity-80"
                                   onError={(e) => (e.target as HTMLImageElement).style.backgroundColor = '#222'}
