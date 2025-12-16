@@ -108,6 +108,14 @@ export function App() {
     return INITIAL_REVIEWS;
   });
 
+  // Initialize Visuals (Profile & Banner)
+  const [profileImage, setProfileImage] = useState(() => localStorage.getItem('defox-profile') || LOGO_URL);
+  const [bannerImage, setBannerImage] = useState(() => localStorage.getItem('defox-banner') || BANNER_IMAGE);
+
+  useEffect(() => {
+    localStorage.setItem('defox-videos', JSON.stringify(videos));
+  }, [videos]);
+
   useEffect(() => {
     localStorage.setItem('defox-skills', JSON.stringify(skills));
   }, [skills]);
@@ -115,6 +123,14 @@ export function App() {
   useEffect(() => {
     localStorage.setItem('defox-reviews', JSON.stringify(reviews));
   }, [reviews]);
+
+  useEffect(() => {
+    localStorage.setItem('defox-profile', profileImage);
+  }, [profileImage]);
+
+  useEffect(() => {
+    localStorage.setItem('defox-banner', bannerImage);
+  }, [bannerImage]);
 
   const handleUpdateSkills = (newSkills: SkillSet) => {
     setSkills(newSkills);
@@ -154,18 +170,17 @@ export function App() {
   
   const approvedReviews = reviews.filter(r => r.status === 'approved');
 
-  // Save videos to LocalStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('defox-videos', JSON.stringify(videos));
-  }, [videos]);
-
   const handleAddVideo = (video: VideoClip) => {
     setVideos([video, ...videos]);
   };
 
+  const handleEditVideo = (updatedVideo: VideoClip) => {
+    setVideos(prev => prev.map(v => v.id === updatedVideo.id ? updatedVideo : v));
+  };
+
   const handleDeleteVideo = (id: string) => {
     // Confirmation is handled in AdminPanel to ensure proper event propagation
-    setVideos(videos.filter(v => v.id !== id));
+    setVideos(prevVideos => prevVideos.filter(v => v.id !== id));
   };
 
   const handleResetData = () => {
@@ -173,6 +188,8 @@ export function App() {
       localStorage.removeItem('defox-videos');
       localStorage.removeItem('defox-skills');
       localStorage.removeItem('defox-reviews');
+      localStorage.removeItem('defox-profile');
+      localStorage.removeItem('defox-banner');
       // Reload to re-initialize with INITIAL_ constants
       window.location.reload();
     }
@@ -293,7 +310,7 @@ export function App() {
       // Robust regex for thumbnail extraction
       const match = video.url.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/);
       const id = match && match[1];
-      if (id && id.length === 11) {
+      if (id && id.length >= 10) {
         return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
       }
     }
@@ -325,9 +342,10 @@ export function App() {
                <div className="relative">
                  <div className="absolute inset-0 bg-brand-500 blur-lg opacity-20 dark:opacity-50 group-hover:opacity-60 dark:group-hover:opacity-100 transition duration-500"></div>
                  <img 
-                   src={LOGO_URL} 
+                   src={profileImage} 
                    alt="Defox Logo" 
                    className="relative w-12 h-12 rounded-lg object-cover shadow-xl border border-gray-200 dark:border-white/10"
+                   onError={(e) => (e.currentTarget.src = LOGO_URL)}
                  />
                </div>
                <span className="text-2xl font-black tracking-tighter text-navy-900 dark:text-brand-100 dark:drop-shadow-glow">DEFOX</span>
@@ -374,9 +392,10 @@ export function App() {
            <div className="absolute inset-0 bg-gradient-to-t from-brand-50 via-brand-50/40 to-transparent dark:from-dark-900 dark:via-dark-900/40 dark:to-transparent z-10"></div>
            
            <img 
-             src={BANNER_IMAGE} 
+             src={bannerImage} 
              alt="Defox Banner" 
              className="w-full h-full object-cover object-center transform scale-105 animate-pulse-slow opacity-80 dark:opacity-50 grayscale-[0.2] dark:grayscale-0 transition-all duration-500"
+             onError={(e) => (e.currentTarget.src = BANNER_IMAGE)}
            />
         </div>
 
@@ -387,9 +406,10 @@ export function App() {
                {/* Behind Profile Glow */}
                <div className="absolute inset-0 bg-brand-500 opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500"></div>
                <img 
-                 src={LOGO_URL} 
+                 src={profileImage} 
                  alt="Defox Profile" 
                  className="w-full h-full object-cover relative z-10"
+                 onError={(e) => (e.currentTarget.src = LOGO_URL)}
                />
             </div>
             
@@ -732,186 +752,6 @@ export function App() {
          </button>
       </footer>
 
-      {/* Review Submission Modal */}
-      {showReviewModal && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200" onClick={() => setShowReviewModal(false)}>
-            <div className="w-full max-w-lg bg-white dark:bg-dark-900 rounded-3xl border border-gray-200 dark:border-brand-900 shadow-2xl overflow-hidden relative" onClick={e => e.stopPropagation()}>
-               {/* Header */}
-               <div className="bg-gray-50 dark:bg-black/50 p-6 border-b border-gray-200 dark:border-white/5 flex justify-between items-center">
-                  <h3 className="text-2xl font-black text-navy-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                     <Star className="text-brand-500" fill="currentColor" /> Leave a Review
-                  </h3>
-                  <button onClick={() => setShowReviewModal(false)} className="text-gray-500 hover:text-red-500 transition">
-                     <X size={24} />
-                  </button>
-               </div>
-
-               <div className="p-8">
-                  {reviewSubmitted ? (
-                     <div className="flex flex-col items-center text-center py-8 animate-in zoom-in">
-                        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-500 mb-4">
-                           <CheckCircle size={32} />
-                        </div>
-                        <h4 className="text-xl font-bold text-navy-900 dark:text-white mb-2">Review Submitted!</h4>
-                        <p className="text-gray-600 dark:text-gray-400">Your review is pending approval. Thanks for your feedback!</p>
-                     </div>
-                  ) : (
-                     <form onSubmit={handleSubmitReview} className="space-y-6">
-                        <div>
-                           <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Rating</label>
-                           <div className="flex gap-2">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                 <button
-                                    key={star}
-                                    type="button"
-                                    onClick={() => setNewReview({...newReview, stars: star})}
-                                    className={`transition-transform hover:scale-110 ${newReview.stars >= star ? 'text-brand-500' : 'text-gray-300 dark:text-gray-700'}`}
-                                 >
-                                    <Star size={32} fill={newReview.stars >= star ? "currentColor" : "none"} />
-                                 </button>
-                              ))}
-                           </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                           <div>
-                              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Name</label>
-                              <div className="relative">
-                                 <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                                 <input 
-                                    type="text" 
-                                    required
-                                    value={newReview.name}
-                                    onChange={(e) => setNewReview({...newReview, name: e.target.value})}
-                                    className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
-                                    placeholder="Your Name"
-                                 />
-                              </div>
-                           </div>
-                           <div>
-                              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Role/Title</label>
-                              <input 
-                                 type="text" 
-                                 value={newReview.role}
-                                 onChange={(e) => setNewReview({...newReview, role: e.target.value})}
-                                 className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-2.5 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
-                                 placeholder="e.g. YouTuber"
-                              />
-                           </div>
-                        </div>
-
-                        <div>
-                           <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Review</label>
-                           <textarea 
-                              required
-                              value={newReview.text}
-                              onChange={(e) => setNewReview({...newReview, text: e.target.value})}
-                              className="w-full bg-gray-50 dark:bg-dark-800 border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 text-navy-900 dark:text-white focus:outline-none focus:border-brand-500 h-24 resize-none"
-                              placeholder="Share your experience..."
-                           />
-                        </div>
-
-                        <button 
-                           type="submit"
-                           className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-1 flex items-center justify-center gap-2 uppercase tracking-wider"
-                        >
-                           <Send size={18} /> Submit Review
-                        </button>
-                     </form>
-                  )}
-               </div>
-            </div>
-         </div>
-      )}
-
-      {/* Password Prompt Modal */}
-      {showPasswordPrompt && (
-        <div 
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 dark:bg-black/95 backdrop-blur-xl p-4 duration-200"
-          onClick={() => {
-            if (!isLockedOut) setShowPasswordPrompt(false);
-          }}
-        >
-          <form 
-            onSubmit={handleAuthSubmit}
-            onClick={e => e.stopPropagation()}
-            className={`w-full max-w-md bg-white dark:bg-dark-900 rounded-3xl border shadow-2xl dark:shadow-[0_0_50px_rgba(255,108,12,0.2)] p-8 relative overflow-hidden transition-colors duration-500 ${isLockedOut ? 'border-red-600' : 'border-gray-200 dark:border-brand-900/50'}`}
-          >
-            {/* Background Tech Elements */}
-            <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent to-transparent ${isLockedOut ? 'via-red-600' : 'via-brand-600'}`}></div>
-            <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl ${isLockedOut ? 'bg-red-600/10' : 'bg-brand-600/10'}`}></div>
-            
-            <div className="flex flex-col items-center text-center mb-8">
-              <div className={`w-20 h-20 bg-gray-50 dark:bg-dark-800 rounded-full border flex items-center justify-center mb-4 shadow-sm dark:shadow-glow relative group transition-colors duration-300 ${isLockedOut ? 'border-red-500/30' : 'border-gray-200 dark:border-brand-500/30'}`}>
-                <div className={`absolute inset-0 rounded-full blur-xl opacity-20 animate-pulse ${isLockedOut ? 'bg-red-500' : 'bg-brand-500'}`}></div>
-                {isLockedOut ? (
-                   <AlertTriangle className="text-red-500 w-8 h-8 animate-pulse" />
-                ) : authError ? (
-                  <Lock className="text-red-500 w-8 h-8 animate-pulse" />
-                ) : (
-                  <Shield className="text-brand-600 dark:text-brand-500 w-8 h-8" />
-                )}
-              </div>
-              <h3 className={`text-2xl font-black uppercase tracking-widest ${isLockedOut ? 'text-red-500 animate-pulse' : 'text-navy-900 dark:text-white'}`}>
-                {isLockedOut ? 'SYSTEM LOCKDOWN' : 'Security Clearance'}
-              </h3>
-              <p className="text-gray-500 text-xs mt-2 font-mono tracking-wider">
-                {isLockedOut ? 'UNAUTHORIZED ATTEMPTS DETECTED' : 'RESTRICTED ACCESS // AUTHORIZED PERSONNEL ONLY'}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {isLockedOut ? (
-                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-500/30 rounded-xl p-6 text-center">
-                   <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-500 font-mono text-4xl font-bold mb-2">
-                      <Timer className="w-8 h-8 animate-spin-slow" />
-                      {lockoutTimer}s
-                   </div>
-                   <p className="text-red-500 dark:text-red-400 text-xs uppercase tracking-widest">Authentication Suspended</p>
-                </div>
-              ) : (
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Key className={`w-5 h-5 transition-colors ${authError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-focus-within:text-brand-500'}`} />
-                  </div>
-                  <input
-                    ref={passwordInputRef}
-                    type="password"
-                    value={passwordInput}
-                    onChange={(e) => {
-                      setPasswordInput(e.target.value);
-                      if (authError) setAuthError(false);
-                    }}
-                    className={`w-full bg-gray-50 dark:bg-dark-800 border-2 rounded-xl py-4 pl-12 pr-4 text-navy-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition-all font-mono text-center tracking-[0.5em] ${
-                      authError 
-                        ? 'border-red-300 dark:border-red-900/50 focus:border-red-500 focus:shadow-lg dark:focus:shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-shake' 
-                        : 'border-gray-200 dark:border-white/5 focus:border-brand-500 focus:shadow-sm dark:focus:shadow-glow-sm'
-                    }`}
-                    placeholder="••••••••••••"
-                    disabled={isLockedOut}
-                  />
-                </div>
-              )}
-
-              {!isLockedOut && authError && (
-                 <p className="text-red-500 text-xs font-bold text-center tracking-widest animate-pulse">
-                   ACCESS DENIED: INVALID KEY ({MAX_ATTEMPTS - failedAttempts} attempts remaining)
-                 </p>
-              )}
-
-              {!isLockedOut && (
-                <button
-                  type="submit"
-                  className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-brand-600 dark:hover:bg-brand-500 hover:text-white dark:hover:text-white font-black py-4 rounded-xl uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-xl dark:hover:shadow-glow flex items-center justify-center gap-2 mt-4"
-                >
-                  Authenticate
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-      )}
-
       {/* Video Modal */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 dark:bg-black/95 backdrop-blur-xl p-4 animate-in fade-in duration-300" onClick={() => setSelectedVideo(null)}>
@@ -958,6 +798,7 @@ export function App() {
         <AdminPanel 
           videos={videos}
           onAddVideo={handleAddVideo}
+          onEditVideo={handleEditVideo}
           onDeleteVideo={handleDeleteVideo}
           onClose={() => setShowAdminPanel(false)}
           skills={skills}
@@ -965,6 +806,10 @@ export function App() {
           reviews={reviews}
           onUpdateReviews={handleUpdateReviews}
           onResetData={handleResetData}
+          profileImage={profileImage}
+          onUpdateProfileImage={setProfileImage}
+          bannerImage={bannerImage}
+          onUpdateBannerImage={setBannerImage}
         />
       )}
 

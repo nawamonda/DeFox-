@@ -32,7 +32,7 @@ export const INITIAL_VIDEOS: VideoClip[] = [
     id: 'sample-2',
     title: 'Short Form Content',
     type: 'youtube',
-    url: 'https://www.youtube.com/shorts/placeholder', // Placeholder as requested "ye wala short" had no link
+    url: 'https://www.youtube.com/shorts/Sqj3t8w9XzY', // Replaced placeholder with a random valid short
     category: 'Short',
     description: 'Engaging short form content designed for retention.'
   }

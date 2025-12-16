@@ -27,12 +27,16 @@ import {
   Ban,
   User,
   PenTool,
-  RotateCcw
+  RotateCcw,
+  Palette,
+  Edit2,
+  RefreshCw
 } from 'lucide-react';
 
 interface AdminPanelProps {
   videos: VideoClip[];
   onAddVideo: (video: VideoClip) => void;
+  onEditVideo: (video: VideoClip) => void;
   onDeleteVideo: (id: string) => void;
   onClose: () => void;
   skills: SkillSet;
@@ -40,11 +44,31 @@ interface AdminPanelProps {
   reviews: Review[];
   onUpdateReviews: (reviews: Review[]) => void;
   onResetData: () => void;
+  profileImage: string;
+  onUpdateProfileImage: (url: string) => void;
+  bannerImage: string;
+  onUpdateBannerImage: (url: string) => void;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDeleteVideo, onClose, skills, onUpdateSkills, reviews, onUpdateReviews, onResetData }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ 
+  videos, 
+  onAddVideo, 
+  onEditVideo,
+  onDeleteVideo, 
+  onClose, 
+  skills, 
+  onUpdateSkills, 
+  reviews, 
+  onUpdateReviews, 
+  onResetData,
+  profileImage,
+  onUpdateProfileImage,
+  bannerImage,
+  onUpdateBannerImage
+}) => {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [activeTab, setActiveTab] = useState<'video' | 'review'>('video');
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   // Video Form State
   const [formData, setFormData] = useState<Partial<VideoClip>>({
@@ -66,6 +90,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
   });
   
   const [skillForm, setSkillForm] = useState<SkillSet>(skills);
+  
+  // Visual Form State
+  const [visualForm, setVisualForm] = useState({
+     profile: profileImage,
+     banner: bannerImage
+  });
+
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [configSaved, setConfigSaved] = useState(false);
@@ -95,39 +126,53 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
     }, 0);
   };
 
-  const validateUrl = (url: string, type: string): boolean => {
+  const validateMediaUrl = (url: string, type: string): { isValid: boolean; error?: string } => {
+    if (!url || !url.trim()) return { isValid: false, error: "URL is required." };
+    const cleanUrl = url.trim();
+
     try {
-      const parsedUrl = new URL(url.trim());
+      const parsedUrl = new URL(cleanUrl);
       
       if (type === 'youtube') {
-        const isYoutubeDomain = parsedUrl.hostname.includes('youtube.com') || parsedUrl.hostname.includes('youtu.be');
-        if (!isYoutubeDomain) return false;
-
-        // Check for common video patterns (Watch ID, Shorts, Embed, or Short URL path)
-        const hasVideoId = 
-          parsedUrl.searchParams.has('v') || // standard watch
-          parsedUrl.pathname.includes('/shorts/') || // shorts
-          parsedUrl.pathname.includes('/embed/') || // embed
-          (parsedUrl.hostname.includes('youtu.be') && parsedUrl.pathname.length > 1); // short url with ID
+        // Robust regex to find 11-char ID in various YouTube URL formats
+        // Supports: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID, youtube.com/embed/ID
+        const ytRegex = /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[?&].*)?$/;
+        const match = cleanUrl.match(ytRegex);
         
-        return hasVideoId;
+        if (!match || !match[1]) {
+          return { isValid: false, error: "Invalid YouTube URL. Could not extract a valid 11-character Video ID." };
+        }
+        return { isValid: true };
       }
       
       if (type === 'drive') {
-        if (!parsedUrl.hostname.includes('drive.google.com')) return false;
+        if (!parsedUrl.hostname.includes('drive.google.com')) {
+          return { isValid: false, error: "URL must be from drive.google.com." };
+        }
         
-        // Check for file structure
-        const hasFileId = 
-          parsedUrl.pathname.includes('/file/d/') || 
-          parsedUrl.pathname.includes('/open') ||
-          parsedUrl.pathname.includes('/uc'); 
-          
-        return hasFileId;
+        // Check for File ID in path or query parameters
+        // Matches: /file/d/ID or ?id=ID
+        const fileIdRegex = /(?:\/file\/d\/|id=)([-a-zA-Z0-9_]+)/;
+        const match = cleanUrl.match(fileIdRegex);
+        
+        if (!match || !match[1]) {
+           return { isValid: false, error: "Invalid Drive Link. Ensure it contains a File ID (e.g., /file/d/xyz...)." };
+        }
+        return { isValid: true };
+      }
+
+      if (type === 'direct') {
+         // Basic extension check for direct files
+         if (!parsedUrl.pathname.match(/\.(mp4|webm|mov|m4v)$/i)) {
+            // Warn but allow, as some direct links might not have extensions (signed URLs)
+            // return { isValid: true }; 
+         }
+         return { isValid: true };
       }
       
-      return true;
+      return { isValid: true };
     } catch (e) {
-      return false;
+      return { isValid: false, error: "Invalid URL format. Please include https://" };
     }
   };
 
@@ -140,25 +185,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
       setError("Title is required.");
       return;
     }
-    if (!formData.url?.trim()) {
-      setError("URL is required.");
-      return;
-    }
     
-    const cleanUrl = formData.url.trim();
-
-    // URL Validation
-    if (!validateUrl(cleanUrl, formData.type || 'youtube')) {
-      const typeName = formData.type === 'drive' ? 'Google Drive' : 'YouTube';
-      let hint = "Please check the link.";
-      
-      if (formData.type === 'youtube') {
-        hint = "Use a valid Watch (v=), Shorts, or youtu.be link.";
-      } else if (formData.type === 'drive') {
-        hint = "Use a valid drive.google.com/file/d/... link.";
-      }
-
-      setError(`Invalid URL format for ${typeName}. ${hint}`);
+    // Validate URL using strict rules
+    const urlValidation = validateMediaUrl(formData.url || '', formData.type || 'youtube');
+    if (!urlValidation.isValid) {
+      setError(urlValidation.error || "Invalid URL");
       return;
     }
 
@@ -168,10 +199,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
       return;
     }
 
-    const newVideo: VideoClip = {
-      id: Date.now().toString(),
-      title: formData.title,
-      url: cleanUrl,
+    const videoData: VideoClip = {
+      id: editingId || Date.now().toString(),
+      title: formData.title!,
+      url: formData.url!.trim(),
       thumbnail: formData.thumbnail,
       type: formData.type as 'youtube' | 'drive' | 'direct',
       category: formData.category as any,
@@ -179,9 +210,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
       timestamp: formData.timestamp || 0
     };
 
-    onAddVideo(newVideo);
+    if (editingId) {
+       onEditVideo(videoData);
+    } else {
+       onAddVideo(videoData);
+    }
     
     // Reset Form
+    resetForm();
+  };
+
+  const resetForm = () => {
     setFormData({
       title: '',
       url: '',
@@ -191,6 +230,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
       description: '',
       timestamp: 0
     });
+    setEditingId(null);
+    setError(null);
+  };
+
+  const handleEditClick = (video: VideoClip) => {
+     setFormData(video);
+     setEditingId(video.id);
+     setActiveTab('video');
+     setError(null);
   };
 
   const handleSubmitReview = (e: React.FormEvent) => {
@@ -222,8 +270,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
     setConfigSaved(false);
   };
 
+  const handleVisualChange = (key: 'profile' | 'banner', value: string) => {
+     setVisualForm(prev => ({ ...prev, [key]: value }));
+     setConfigSaved(false);
+  };
+
   const handleSaveConfig = () => {
     onUpdateSkills(skillForm);
+    onUpdateProfileImage(visualForm.profile);
+    onUpdateBannerImage(visualForm.banner);
     setConfigSaved(true);
     setTimeout(() => setConfigSaved(false), 2000);
   };
@@ -246,6 +301,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
   const handleDeleteVideoClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this clip from the database?')) {
+        // If we are currently editing this video, clear the form
+        if (editingId === id) {
+           resetForm();
+        }
         onDeleteVideo(id);
     }
   };
@@ -254,9 +313,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
     video.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     video.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const pendingReviews = reviews.filter(r => r.status === 'pending');
-  const activeReviews = reviews.filter(r => r.status === 'approved');
 
   return (
     <div 
@@ -291,7 +347,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
                   </div>
                   <div>
                       <h3 className="text-lg font-bold text-navy-900 dark:text-white">System Configuration</h3>
-                      <p className="text-xs text-gray-500 font-mono">ADJUST SKILL METRICS</p>
+                      <p className="text-xs text-gray-500 font-mono">ADJUST SKILL METRICS & VISUALS</p>
                   </div>
                 </div>
 
@@ -326,6 +382,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
                       />
                    </div>
 
+                   {/* Visual Identity Section */}
+                   <div className="pt-4 border-t border-gray-200 dark:border-white/5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Palette size={16} className="text-brand-500"/>
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Visual Identity</span>
+                      </div>
+                      
+                      <div className="space-y-4">
+                         <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Profile Image URL</label>
+                            <input 
+                               type="url"
+                               value={visualForm.profile}
+                               onChange={(e) => handleVisualChange('profile', e.target.value)}
+                               className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
+                               placeholder="https://..."
+                            />
+                         </div>
+                         <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">Banner Image URL</label>
+                            <input 
+                               type="url"
+                               value={visualForm.banner}
+                               onChange={(e) => handleVisualChange('banner', e.target.value)}
+                               className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-xs text-navy-900 dark:text-white focus:outline-none focus:border-brand-500"
+                               placeholder="https://..."
+                            />
+                         </div>
+                      </div>
+                   </div>
+
                    {/* Save Configuration Button */}
                    <button 
                      type="button"
@@ -354,13 +441,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
             <div>
                <div className="flex gap-2 mb-4 p-1 bg-gray-100 dark:bg-dark-800 rounded-xl">
                   <button 
-                    onClick={() => setActiveTab('video')}
+                    onClick={() => {
+                       setActiveTab('video');
+                       resetForm();
+                    }}
                     className={`flex-1 py-2 rounded-lg text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${activeTab === 'video' ? 'bg-white dark:bg-brand-500 text-brand-600 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-navy-900 dark:hover:text-white'}`}
                   >
-                     <Plus size={16} /> Add Video
+                     {editingId ? <Edit2 size={16} /> : <Plus size={16} />} 
+                     {editingId ? 'Edit Video' : 'Add Video'}
                   </button>
                   <button 
-                    onClick={() => setActiveTab('review')}
+                    onClick={() => {
+                       setActiveTab('review');
+                       setEditingId(null);
+                    }}
                     className={`flex-1 py-2 rounded-lg text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${activeTab === 'review' ? 'bg-white dark:bg-brand-500 text-brand-600 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-navy-900 dark:hover:text-white'}`}
                   >
                      <MessageSquare size={16} /> Add Review
@@ -382,11 +476,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
                   <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                     <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-white/5">
                        <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center border border-brand-200 dark:border-brand-500/30 text-brand-600 dark:text-brand-500 shadow-sm dark:shadow-glow-sm">
-                          <Plus size={20} />
+                          {editingId ? <Edit2 size={20} /> : <Plus size={20} />}
                        </div>
                        <div>
-                          <h3 className="text-xl font-bold text-navy-900 dark:text-white">New Transmission</h3>
-                          <p className="text-xs text-gray-500 font-mono">ADD CONTENT TO DATABASE</p>
+                          <h3 className="text-xl font-bold text-navy-900 dark:text-white">{editingId ? 'Edit Transmission' : 'New Transmission'}</h3>
+                          <p className="text-xs text-gray-500 font-mono">{editingId ? 'UPDATE EXISTING CLIP' : 'ADD CONTENT TO DATABASE'}</p>
                        </div>
                     </div>
                     
@@ -560,13 +654,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
                         </div>
                       </div>
 
-                      <button
-                        type="submit"
-                        className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg hover:shadow-xl dark:shadow-glow dark:hover:shadow-glow-lg uppercase tracking-wider group"
-                      >
-                        <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-                        Deploy Clip
-                      </button>
+                      <div className="flex gap-2">
+                        {editingId && (
+                           <button
+                             type="button"
+                             onClick={resetForm}
+                             className="px-6 py-4 bg-gray-200 dark:bg-white/5 hover:bg-gray-300 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition"
+                           >
+                              Cancel
+                           </button>
+                        )}
+                        <button
+                           type="submit"
+                           className={`flex-1 ${editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-brand-500 hover:bg-brand-600'} text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg hover:shadow-xl dark:shadow-glow dark:hover:shadow-glow-lg uppercase tracking-wider group`}
+                        >
+                           {editingId ? <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-500" /> : <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />}
+                           {editingId ? 'Update Clip' : 'Deploy Clip'}
+                        </button>
+                      </div>
                     </form>
                   </div>
                ) : (
@@ -671,7 +776,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
                 {activeTab === 'video' ? (
                    filteredVideos.length > 0 ? (
                       filteredVideos.map(video => (
-                         <div key={video.id} className="group bg-white dark:bg-dark-900 p-4 rounded-xl border border-gray-200 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 transition-colors flex gap-4 items-center">
+                         <div key={video.id} className={`group bg-white dark:bg-dark-900 p-4 rounded-xl border transition-colors flex gap-4 items-center ${editingId === video.id ? 'border-brand-500 shadow-[0_0_15px_rgba(var(--brand-500),0.1)]' : 'border-gray-200 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500'}`}>
                             <div className="w-24 aspect-video bg-gray-100 dark:bg-black rounded-lg overflow-hidden shrink-0 relative">
                                <img 
                                   src={video.thumbnail || (video.type === 'youtube' ? `https://img.youtube.com/vi/${video.url.split('v=')[1]?.split('&')[0]}/default.jpg` : '')} 
@@ -690,13 +795,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ videos, onAddVideo, onDe
                                   <span className="truncate max-w-[150px]">{video.url}</span>
                                </div>
                             </div>
-                            <button 
-                               onClick={(e) => handleDeleteVideoClick(video.id, e)}
-                               className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                               title="Delete Clip"
-                            >
-                               <Trash2 size={18} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button 
+                                 onClick={() => handleEditClick(video)}
+                                 className={`p-2 rounded-lg transition ${editingId === video.id ? 'bg-brand-500 text-white' : 'text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20'}`}
+                                 title="Edit Clip"
+                              >
+                                 <Edit2 size={18} />
+                              </button>
+                              <button 
+                                 onClick={(e) => handleDeleteVideoClick(video.id, e)}
+                                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                                 title="Delete Clip"
+                              >
+                                 <Trash2 size={18} />
+                              </button>
+                            </div>
                          </div>
                       ))
                    ) : (

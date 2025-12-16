@@ -98,59 +98,7 @@
         },
       }
     </script>
-    <style>
-      body {
-        /* Default Light Mode Background */
-        background-color: #fcfbf8;
-        color: #060771; /* Navy 900 */
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-      /* Dark Mode Background applied when .dark class is on html */
-      .dark body {
-        background-color: #050505; /* Deep Black */
-        color: #FFE08F; /* Brand 100 */
-      }
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #FF6C0C; 
-        border-radius: 4px;
-        border: 1px solid transparent;
-      }
-      .dark ::-webkit-scrollbar-track {
-        background: #050505; 
-      }
-      .dark ::-webkit-scrollbar-thumb {
-        background: #BF1A1A; 
-        border: 1px solid #171717;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #FFE08F; 
-      }
-      /* Glass effect for Navbar */
-      .glass {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-      }
-      .dark .glass {
-        background: rgba(5, 5, 5, 0.85);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      }
-      
-      .animation-delay-2000 {
-        animation-delay: 2s;
-      }
-      .animation-delay-4000 {
-        animation-delay: 4s;
-      }
-    </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.3",

@@ -13,8 +13,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ clip, autoPlay = false }) => 
 
     if (clip.type === 'youtube') {
       // Robust Regex for YouTube ID extraction
-      // Handles: v=, embed/, shorts/, youtu.be/, and trailing params
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
+      // Handles: v=, embed/, shorts/, youtu.be/, live/ and trailing params
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|live\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = cleanUrl.match(regExp);
       
       // Extract ID and ensure it's valid (YouTube IDs are 11 chars, but we allow basic sanity check)
@@ -25,9 +25,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ clip, autoPlay = false }) => 
 
       const startParam = clip.timestamp ? `&start=${clip.timestamp}` : '';
       const autoplayParam = autoPlay ? '&autoplay=1' : '';
-      // Ensure origin is set for iframe policy compatibility
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      return `https://www.youtube.com/embed/${videoId}?rel=0&enablejsapi=1&origin=${origin}${startParam}${autoplayParam}`;
+      
+      // Removing enablejsapi and origin to prevent Error 153 in some environments
+      return `https://www.youtube.com/embed/${videoId}?rel=0${startParam}${autoplayParam}`;
     }
     
     if (clip.type === 'drive') {
